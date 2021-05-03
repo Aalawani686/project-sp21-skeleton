@@ -31,28 +31,42 @@ def solve(G):
     remove_weighted_edges = []
     remove_edges = []
 
-    print(nx.shortest_path_length(G, source=s, target=e))
+    # print(nx.shortest_path_length(G, source=s, target=e))
 
     for i in range(k):
         p = nx.shortest_path(G, source=s, target=e)
-        min_edge = []
-        min_weight = -1
+        edges = []
+        weights = []
         for i in range(len(p) - 1):
             edge = [p[i], p[i+1]]
             weight = G[p[i]][p[i+1]]["weight"]
-            if (weight > min_weight):
-                min_weight = weight
-                min_edge = edge
-        G.remove_edge(min_edge[0], min_edge[1])
-        if (not nx.has_path(G, s, e)):
-            G.add_edge(min_edge[0], min_edge[1])
-            break
-        remove_edges.append(min_edge)
-        temp = min_edge.copy()
-        temp.append(min_weight)
-        remove_weighted_edges.append(temp)
+            # if (weight > min_weight):
+            #     min_weight = weight
+            #     min_edge = edge
+            edges.append(edge)
+            weights.append(weight)
+        min_edge = -1
+        min_weight = -1
+        while len(edges) > 0:
+            pos = weights.index(min(weights))
+            min_edge = edges[pos]
+            min_weight = weights[pos]
+            G.remove_edge(min_edge[0], min_edge[1])
+            if (not nx.has_path(G, s, e)):
+                G.add_edge(min_edge[0], min_edge[1], weight = min_weight)
+                edges.pop(pos)
+                weights.pop(pos)
+                min_edge = -1
+                min_weight = -1
+            else:
+                break
+        if (min_edge != -1):
+            remove_edges.append(min_edge)
+            temp = min_edge.copy()
+            temp.append(min_weight)
+            remove_weighted_edges.append(temp)
 
-    print(nx.shortest_path_length(G, source=s, target=e))
+    # print(nx.shortest_path_length(G, source=s, target=e))
     G.add_weighted_edges_from(remove_weighted_edges)
 
     return [], remove_edges
@@ -80,7 +94,7 @@ if __name__ == '__main__':
     # inputs = []
     # inputs.append("inputs/large/large-3.in")
     for input_path in inputs:
-        output_path = 'outputs/' + basename(normpath(input_path))[:-3] + '.out'
+        output_path = 'outputs/' + input_path.split("/")[1] + "/" + basename(normpath(input_path))[:-3] + '.out'
         G = read_input_file(input_path)
         c, k = solve(G)
         print("Shortest Path Difference: {}".format(calculate_score(G, c, k)))
