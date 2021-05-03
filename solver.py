@@ -14,7 +14,48 @@ def solve(G):
         c: list of cities to remove
         k: list of edges to remove
     """
-    pass
+    c, k = 0, 0
+    s = 0
+    e = len(G.nodes) - 1
+    if (len(G.nodes) > 50):
+        k = 100
+        c = 5
+    elif (len(G.nodes) > 30):
+        k = 50
+        c = 3
+    else:
+        k = 15
+        c = 1
+
+    remove_nodes = []
+    remove_weighted_edges = []
+    remove_edges = []
+
+    print(nx.shortest_path_length(G, source=s, target=e))
+
+    for i in range(k):
+        p = nx.shortest_path(G, source=s, target=e)
+        min_edge = []
+        min_weight = -1
+        for i in range(len(p) - 1):
+            edge = [p[i], p[i+1]]
+            weight = G[p[i]][p[i+1]]["weight"]
+            if (weight > min_weight):
+                min_weight = weight
+                min_edge = edge
+        G.remove_edge(min_edge[0], min_edge[1])
+        if (not nx.has_path(G, s, e)):
+            G.add_edge(min_edge[0], min_edge[1])
+            break
+        remove_edges.append(min_edge)
+        temp = min_edge.copy()
+        temp.append(min_weight)
+        remove_weighted_edges.append(temp)
+
+    print(nx.shortest_path_length(G, source=s, target=e))
+    G.add_weighted_edges_from(remove_weighted_edges)
+
+    return [], remove_edges
 
 
 # Here's an example of how to run your solver.
@@ -32,12 +73,17 @@ def solve(G):
 
 
 # For testing a folder of inputs to create a folder of outputs, you can use glob (need to import it)
-# if __name__ == '__main__':
-#     inputs = glob.glob('inputs/*')
-#     for input_path in inputs:
-#         output_path = 'outputs/' + basename(normpath(input_path))[:-3] + '.out'
-#         G = read_input_file(input_path)
-#         c, k = solve(G)
-#         assert is_valid_solution(G, c, k)
-#         distance = calculate_score(G, c, k)
-#         write_output_file(G, c, k, output_path)
+if __name__ == '__main__':
+    inputs = glob.glob('inputs/small/*')
+    inputs.extend(glob.glob('inputs/medium/*'))
+    inputs.extend(glob.glob('inputs/large/*'))
+    # inputs = []
+    # inputs.append("inputs/large/large-3.in")
+    for input_path in inputs:
+        output_path = 'outputs/' + basename(normpath(input_path))[:-3] + '.out'
+        G = read_input_file(input_path)
+        c, k = solve(G)
+        print("Shortest Path Difference: {}".format(calculate_score(G, c, k)))
+        assert is_valid_solution(G, c, k)
+        distance = calculate_score(G, c, k)
+        write_output_file(G, c, k, output_path)
