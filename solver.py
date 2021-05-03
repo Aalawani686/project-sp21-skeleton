@@ -33,18 +33,35 @@ def solve(G):
 
     # print(nx.shortest_path_length(G, source=s, target=e))
 
+    #
+    # for u,v,d in G.edges(data=True):
+    #     G[u][v]["capacity"] = float("inf") - G[u][v]["weight"]
+    #
+    # for i in range(c):
+    #     p = nx.shortest_path(G, source=s, target=e)
+    #     cut = nx.minimum_cut(G, s, e)
+
+
     for i in range(k):
         p = nx.shortest_path(G, source=s, target=e)
         edges = []
         weights = []
+        params = []
         for i in range(len(p) - 1):
             edge = [p[i], p[i+1]]
             weight = G[p[i]][p[i+1]]["weight"]
-            # if (weight > min_weight):
-            #     min_weight = weight
-            #     min_edge = edge
+
+            G.remove_edge(p[i], p[i+1])
+            param = weight
+
+            if (nx.has_path(G, p[i], p[i+1])):
+                param -= nx.dijkstra_path_length(G, source=p[i], target=p[i+1])
+
+            G.add_edge(p[i], p[i+1], weight = weight)
+
             edges.append(edge)
             weights.append(weight)
+            params.append(param)
         min_edge = -1
         min_weight = -1
         while len(edges) > 0:
@@ -93,11 +110,14 @@ if __name__ == '__main__':
     inputs.extend(glob.glob('inputs/large/*'))
     # inputs = []
     # inputs.append("inputs/large/large-3.in")
+    total = 0
     for input_path in inputs:
         output_path = 'outputs/' + input_path.split("/")[1] + "/" + basename(normpath(input_path))[:-3] + '.out'
         G = read_input_file(input_path)
         c, k = solve(G)
-        print("Shortest Path Difference: {}".format(calculate_score(G, c, k)))
+        total += calculate_score(G, c, k)
+        # print("Shortest Path Difference: {}".format(calculate_score(G, c, k)))
         assert is_valid_solution(G, c, k)
         distance = calculate_score(G, c, k)
         write_output_file(G, c, k, output_path)
+    print(total)
