@@ -32,30 +32,30 @@ def solve(G):
     remove_edges = []
 
     for i in range(c):
-        nodes = list(G.degree())
+        nodes = list(G.nodes)
 
         while len(nodes) > 0:
 
             node = min(nodes, key = lambda n: sum(G[u][v]["weight"] for u, v in G.edges(n)))
 
-            if (node[0] == s or node[0] == e):
+            if (node == s or node == e):
                 nodes.remove(node)
                 continue
 
-            edges = list(G.edges(node[0]))
+            edges = list(G.edges(node))
             for j in range(len(edges)):
                 edge = list(edges[j])
                 edge.append(G[edge[0]][edge[1]]["weight"])
                 edges[j] = edge
 
-            G.remove_node(node[0])
+            G.remove_node(node)
 
             if (not nx.has_path(G, s, e) or not nx.is_connected(G)):
                 nodes.remove(node)
-                G.add_node(node[0])
+                G.add_node(node)
                 G.add_weighted_edges_from(edges)
             else:
-                remove_nodes.append(node[0])
+                remove_nodes.append(node)
                 remove_weighted_edges.extend(edges)
                 break
 
