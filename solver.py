@@ -135,11 +135,14 @@ if __name__ == '__main__':
     # inputs = []
     # inputs.append("inputs/medium/medium-243.in")
     total = 0
+    i = 0
     for input_path in inputs:
         output_path = 'outputs/' + input_path.split("/")[1] + "/" + basename(normpath(input_path))[:-3] + '.out'
         G = read_input_file(input_path)
         c, k = solve(G)
         total += calculate_score(G, c, k)
+        i+=1
+        print(i)
         print("Shortest Path Difference: {}".format(calculate_score(G, c, k)))
         assert is_valid_solution(G, c, k)
         distance = calculate_score(G, c, k)
