@@ -52,7 +52,7 @@ def solve(G):
 
     r_n, r_e = c, k
     while r_n > 0 or r_e > 0:
-        paths = k_shortest_paths(G, s, e, 5, weight="weight")
+        paths = k_shortest_paths(G, s, e, 8, weight="weight")
         p = nx.shortest_path(G, source=s, target=e)
         edges = []
         nodes = []
