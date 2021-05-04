@@ -31,84 +31,143 @@ def solve(G):
     remove_weighted_edges = []
     remove_edges = []
 
-    for i in range(c):
-        nodes = list(G.nodes)
-
-        while len(nodes) > 0:
-
-            node = min(nodes, key = lambda n: sum(G[u][v]["weight"] for u, v in G.edges(n)))
-
-            if (node == s or node == e):
-                nodes.remove(node)
-                continue
-
-            edges = list(G.edges(node))
-            for j in range(len(edges)):
-                edge = list(edges[j])
-                edge.append(G[edge[0]][edge[1]]["weight"])
-                edges[j] = edge
-
-            G.remove_node(node)
-
-            if (not nx.has_path(G, s, e) or not nx.is_connected(G)):
-                nodes.remove(node)
-                G.add_node(node)
-                G.add_weighted_edges_from(edges)
-            else:
-                remove_nodes.append(node)
-                remove_weighted_edges.extend(edges)
-                break
-
-        # .list.sort(key = lambda x: x[1]) )
-    #     p = nx.shortest_path(G, source=s, target=e)
-    #     cut = nx.minimum_cut(G, s, e)
-
-    for i in range(k):
+    # for i in range(c):
+    #     nodes = list(G.nodes)
+    #
+    #     while len(nodes) > 0:
+    #
+    #         node = min(nodes, key = lambda n: sum(G[u][v]["weight"] for u, v in G.edges(n)))
+    #
+    #         if (node == s or node == e):
+    #             nodes.remove(node)
+    #             continue
+    #
+    #         edges = list(G.edges(node))
+    #         for j in range(len(edges)):
+    #             edge = list(edges[j])
+    #             edge.append(G[edge[0]][edge[1]]["weight"])
+    #             edges[j] = edge
+    #
+    #         G.remove_node(node)
+    #
+    #         if (not nx.has_path(G, s, e) or not nx.is_connected(G)):
+    #             nodes.remove(node)
+    #             G.add_node(node)
+    #             G.add_weighted_edges_from(edges)
+    #         else:
+    #             remove_nodes.append(node)
+    #             remove_weighted_edges.extend(edges)
+    #             break
+    r_n, r_e = c, k
+    while r_n > 0 or r_e > 0:
 
         p = nx.shortest_path(G, source=s, target=e)
         edges = []
-        weights = []
-        params = []
+        nodes = []
+
         for i in range(len(p) - 1):
-            edge = [p[i], p[i+1]]
             weight = G[p[i]][p[i+1]]["weight"]
+            edge = [p[i], p[i+1], weight]
+            node = p[i+1]
 
-            G.remove_edge(p[i], p[i+1])
-            param = weight
 
-            if (nx.has_path(G, p[i], p[i+1])):
-                param -= nx.dijkstra_path_length(G, source=p[i], target=p[i+1])
-
-            G.add_edge(p[i], p[i+1], weight = weight)
-
+            if (i != len(p) - 2):
+                nodes.append(node)
             edges.append(edge)
-            weights.append(weight)
-            params.append(param)
-        min_edge = -1
-        min_weight = -1
-        while len(edges) > 0:
-            pos = weights.index(min(weights))
-            min_edge = edges[pos]
-            min_weight = weights[pos]
-            G.remove_edge(min_edge[0], min_edge[1])
-            if (not nx.has_path(G, s, e)):
-                G.add_edge(min_edge[0], min_edge[1], weight = min_weight)
-                edges.pop(pos)
-                weights.pop(pos)
-                min_edge = -1
-                min_weight = -1
-            else:
+
+        isEdge = -1
+        min_Op = -1
+        min_Val = float("inf")
+        add_Back_Edges = []
+
+        for edge in edges:
+            if (r_e == 0):
                 break
-        if (min_edge != -1):
-            remove_edges.append(min_edge)
-            temp = min_edge.copy()
-            temp.append(min_weight)
-            remove_weighted_edges.append(temp)
+            G.remove_edge(edge[0], edge[1])
+            if (not nx.has_path(G, s, e)):
+                G.add_edge(edge[0], edge[1], weight = edge[2])
+                continue
+            if (nx.dijkstra_path_length(G, source=s, target=e) < min_Val):
+                if (isEdge == -1):
+                    blank = 0
+                elif (isEdge):
+                    G.add_edge(min_Op[0], min_Op[1], weight = min_Op[2])
+                else:
+                    G.add_node(min_Op)
+                    G.add_weighted_edges_from(add_Back_Edges)
+                    add_Back_Edges = []
+                isEdge = True
+                min_Op = edge
+            else:
+                G.add_edge(edge[0], edge[1], weight = edge[2])
+
+        for node in nodes:
+            if (r_n == 0):
+                break
+            n_edges = list(G.edges(node))
+            for j in range(len(n_edges)):
+                n_edge = list(n_edges[j])
+                n_edge.append(G[n_edge[0]][n_edge[1]]["weight"])
+                n_edges[j] = n_edge
+
+            G.remove_node(node)
+            if (not nx.has_path(G, s, e) or not nx.is_connected(G)):
+                 G.add_node(node)
+                 G.add_weighted_edges_from(n_edges)
+                 continue
+            if (nx.dijkstra_path_length(G, source=s, target=e) < min_Val):
+                if (isEdge == -1):
+                    blank = 0
+                elif (isEdge):
+                    G.add_edge(min_Op[0], min_Op[1], weight = min_Op[2])
+                else:
+                    G.add_node(min_Op)
+                    G.add_weighted_edges_from(add_Back_Edges)
+                    add_Back_Edges = []
+                isEdge = False
+                min_Op = node
+                add_Back_Edges.extend(n_edges)
+            else:
+                G.add_node(node)
+                G.add_weighted_edges_from(n_edges)
+
+        if (isEdge == -1):
+            break
+        if (isEdge):
+            r_e -= 1
+            remove_edges.append([min_Op[0], min_Op[1]])
+            remove_weighted_edges.append(min_Op)
+        else:
+            r_n -= 1
+            remove_nodes.append(min_Op)
+            remove_weighted_edges.extend(add_Back_Edges)
 
 
+        # min_edge = -1
+        # min_weight = -1
+        # while len(edges) > 0:
+        #     pos = weights.index(min(weights))
+        #     min_edge = edges[pos]
+        #     min_weight = weights[pos]
+        #     G.remove_edge(min_edge[0], min_edge[1])
+        #     if (not nx.has_path(G, s, e)):
+        #         G.add_edge(min_edge[0], min_edge[1], weight = min_weight)
+        #         edges.pop(pos)
+        #         weights.pop(pos)
+        #         min_edge = -1
+        #         min_weight = -1
+        #     else:
+        #         break
+        # if (min_edge != -1):
+        #     remove_edges.append(min_edge)
+        #     temp = min_edge.copy()
+        #     temp.append(min_weight)
+        #     remove_weighted_edges.append(temp)
 
     G.add_nodes_from(remove_nodes)
     G.add_weighted_edges_from(remove_weighted_edges)
+
+
 
     return remove_nodes, remove_edges
 
